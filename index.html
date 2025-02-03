@@ -27,29 +27,31 @@
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       const width = canvas.width, height = canvas.height;
-      const maxIterations = 256;
-      const initialStep = 16;  // Must be a power of 2; iterations will use: 16, 8, 4, 2, 1, 0.5
+      const initialStep = 8;  // Must be a power of 2; iterations will use: 16, 8, 4, 2, 1, 0.5
       const lastStep = 0.5;    // Stop refining when we reach this step size
       
+      // Defaults are also set here, but can be overridden by URL parameters.
       function getUrlParams() {
         const params = new URLSearchParams(window.location.search);
         return {
           centerX: parseFloat(params.get('centerX')) || -0.5,
           centerY: parseFloat(params.get('centerY')) || 0.0,
-          scale: parseFloat(params.get('scale')) || 3.0
+          scale: parseFloat(params.get('scale')) || 3.0,
+          maxIterations: parseInt(params.get('maxIterations')) || 256
         };
       }
 
-      function updateUrlParams(centerX, centerY, scale) {
+      function updateUrlParams(centerX, centerY, scale, maxIterations) {
         const params = new URLSearchParams();
+        params.set('maxIterations', maxIterations);
+        params.set('scale', scale);
         params.set('centerX', centerX);
         params.set('centerY', centerY);
-        params.set('scale', scale);
         window.history.pushState({}, '', `${window.location.pathname}?${params}`);
       }
 
-      const { centerX: initialCenterX, centerY: initialCenterY, scale: initialScale } = getUrlParams();
-      let centerX = initialCenterX, centerY = initialCenterY, scale = initialScale;
+      const { centerX: initialCenterX, centerY: initialCenterY, scale: initialScale, maxIterations: initialMaxIterations } = getUrlParams();
+      let centerX = initialCenterX, centerY = initialCenterY, scale = initialScale, maxIterations = initialMaxIterations;
 
       // Each click will recenter on the clicked point and zoom in by a factor of 4.
       let currentRenderId = 0;  // Increases with each new render (to discard late messages).
@@ -176,7 +178,7 @@
         centerX = newCenterX;
         centerY = newCenterY;
         scale = newScale;
-        updateUrlParams(centerX, centerY, scale);
+        updateUrlParams(centerX, centerY, scale, maxIterations);
         ctx.putImageData(imageData, 0, 0);
         // Begin with the coarsest resolution.
         runIteration(initialStep, 0);
@@ -212,7 +214,8 @@
 
       // Handle the popstate event to re-render the view when navigating history.
       window.addEventListener('popstate', () => {
-        const { centerX: newCenterX, centerY: newCenterY, scale: newScale } = getUrlParams();
+        const { centerX: newCenterX, centerY: newCenterY, scale: newScale, maxIterations: newMaxIterations } = getUrlParams();
+        maxIterations = newMaxIterations;
         startRender(newCenterX, newCenterY, newScale);
       });
 
