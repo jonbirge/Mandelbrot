@@ -44,6 +44,20 @@
       const numWorkers = navigator.hardwareConcurrency || 4;
       // const numWorkers = 8;
       const workers = [];
+      
+      function getColor(n, maxIterations) {
+        if (n === maxIterations) {
+          return { r: 0, g: 0, b: 0, a: 255 };  // Points inside the set: black.
+        } else {
+          // Smooth color gradient
+          var t = n / maxIterations;
+          var r = Math.floor(9 * (1 - t) * t * t * t * 255);
+          var g = Math.floor(15 * (1 - t) * (1 - t) * t * t * 255);
+          var b = Math.floor(8.5 * (1 - t) * (1 - t) * (1 - t) * t * 255);
+          return { r: r, g: g, b: b, a: 255 };
+        }
+      }
+
       for (let i = 0; i < numWorkers; i++) {
         const worker = new Worker('mand_worker.js');
         worker.onmessage = function(e) {
@@ -54,15 +68,16 @@
           const results = data.results;
           // For each computed point, fill its s×s block in the image buffer.
           results.forEach(function (p) {
+            const color = getColor(p.n, maxIterations);
             for (let dy = 0; dy < s; dy++) {
               for (let dx = 0; dx < s; dx++) {
                 const px = p.x + dx, py = p.y + dy;
                 if (px < width && py < height) {
                   const idx = (py * width + px) * 4;
-                  imageData.data[idx]     = p.r;
-                  imageData.data[idx + 1] = p.g;
-                  imageData.data[idx + 2] = p.b;
-                  imageData.data[idx + 3] = p.a;
+                  imageData.data[idx]     = color.r;
+                  imageData.data[idx + 1] = color.g;
+                  imageData.data[idx + 2] = color.b;
+                  imageData.data[idx + 3] = color.a;
                 }
               }
             }

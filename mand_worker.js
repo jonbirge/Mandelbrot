@@ -30,19 +30,9 @@ self.onmessage = function(e) {
           zx = xtemp;
           iter++;
         }
-        var r, g, b;
-        if (iter === maxIterations) {
-          r = g = b = 0;  // Points inside the set: black.
-        } else {
-          // Smooth color gradient
-          var t = iter / maxIterations;
-          r = Math.floor(9 * (1 - t) * t * t * t * 255);
-          g = Math.floor(15 * (1 - t) * (1 - t) * t * t * 255);
-          b = Math.floor(8.5 * (1 - t) * (1 - t) * (1 - t) * t * 255);
-        }
         // Each computed point represents a block of size s x s.
-        results.push({ x: x, y: y, s: s, r: r, g: g, b: b, a: 255 });
+        results.push({ x: x, y: y, s: s, n: iter });
       }
     }
     self.postMessage({ renderId: renderId, results: results, s: s, iteration: iteration });
-  };
+};
