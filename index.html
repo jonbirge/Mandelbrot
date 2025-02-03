@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Mandelbrot Set</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #fff;
+    }
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    (() => {
+      // Set up canvas and viewing parameters.
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const width = canvas.width, height = canvas.height;
+      const maxIterations = 256;
+      const initialStep = 16;  // Must be a power of 2; iterations will use: 16, 8, 4, 2, 1.
+      
+      // The initial complex-plane view (centered at -0.5+0i, width=3.0).
+      let centerX = -0.5, centerY = 0.0, scale = 3.0;
+      
+      // Each click will recenter on the clicked point and zoom in by a factor of 4.
+      let currentRenderId = 0;  // Increases with each new render (to discard late messages).
+      let currentIteration = 0; // Tracks the current refinement iteration.
+      
+      // Create an ImageData buffer that we update progressively.
+      let imageData = ctx.getImageData(0, 0, width, height);
+
+      // Create a pool of Web Workers from an inline blob.
+      const numWorkers = navigator.hardwareConcurrency || 4;
+      // const numWorkers = 8;
+      const workers = [];
+      for (let i = 0; i < numWorkers; i++) {
+        const worker = new Worker('mand_worker.js');
+        worker.onmessage = function(e) {
+          const data = e.data;
+          // Discard any results from an outdated render.
+          if (data.renderId !== currentRenderId) return;
+          const s = data.s;
+          const results = data.results;
+          // For each computed point, fill its s×s block in the image buffer.
+          results.forEach(function (p) {
+            for (let dy = 0; dy < s; dy++) {
+              for (let dx = 0; dx < s; dx++) {
+                const px = p.x + dx, py = p.y + dy;
+                if (px < width && py < height) {
+                  const idx = (py * width + px) * 4;
+                  imageData.data[idx]     = p.r;
+                  imageData.data[idx + 1] = p.g;
+                  imageData.data[idx + 2] = p.b;
+                  imageData.data[idx + 3] = p.a;
+                }
+              }
+            }
+          });
+          // Update the canvas display.
+          ctx.putImageData(imageData, 0, 0);
+          // When every worker has returned, schedule the next (more refined) iteration.
+          currentIterationPending--;
+          if (currentIterationPending === 0) {
+            // Proceed to the next iteration if the block size is greater than 1.
+            if (s > 1) {
+              runIteration(s / 2, currentIteration + 1);
+            }
+          }
+        };
+        workers.push(worker);
+      }
+      
+      // Global counter for the pending worker tasks.
+      let currentIterationPending = 0;
+      
+      // runIteration dispatches tasks to all workers to compute new points for block size s.
+      function runIteration(s, iteration) {
+        if (s < 1) return;
+        currentIteration = iteration;
+        currentIterationPending = numWorkers;
+        // Partition the vertical range into segments (one per worker).
+        const segmentHeight = Math.ceil(height / numWorkers);
+        for (let i = 0; i < numWorkers; i++) {
+          const yStart = i * segmentHeight;
+          const yEnd = Math.min(height, (i + 1) * segmentHeight);
+          workers[i].postMessage({
+            renderId: currentRenderId,
+            s: s,
+            iteration: iteration,
+            yStart: yStart,
+            yEnd: yEnd,
+            width: width,
+            height: height,
+            centerX: centerX,
+            centerY: centerY,
+            scale: scale,
+            maxIterations: maxIterations
+          });
+        }
+      }
+      
+      // startRender resets the display and begins the progressive (iterative) computation.
+      function startRender(newCenterX, newCenterY, newScale) {
+        currentRenderId++;
+        centerX = newCenterX;
+        centerY = newCenterY;
+        scale = newScale;
+        // Clear the image buffer (here, white background).
+        for (let i = 0; i < imageData.data.length; i++) {
+          imageData.data[i] = 255;
+        }
+        ctx.putImageData(imageData, 0, 0);
+        // Begin with the coarsest resolution.
+        runIteration(initialStep, 0);
+      }
+      
+      // Start the initial render.
+      startRender(centerX, centerY, scale);
+      
+      // When the user clicks, recenter on that complex coordinate and zoom in (scale divided by 4).
+      canvas.addEventListener("click", function (e) {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left, y = e.clientY - rect.top;
+        // Map the clicked pixel to the complex plane.
+        const newCenterX = centerX + (x - width / 2) * (scale / width);
+        const newCenterY = centerY + (y - height / 2) * (scale / width);
+        const newScale = scale / 4;
+        startRender(newCenterX, newCenterY, newScale);
+      });
+      
+    })();
+  </script>
+</body>
+</html>
