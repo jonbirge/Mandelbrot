@@ -30,9 +30,26 @@
       const maxIterations = 256;
       const initialStep = 16;  // Must be a power of 2; iterations will use: 16, 8, 4, 2, 1.
       
-      // The initial complex-plane view (centered at -0.5+0i, width=3.0).
-      let centerX = -0.5, centerY = 0.0, scale = 3.0;
-      
+      function getUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+          centerX: parseFloat(params.get('centerX')) || -0.5,
+          centerY: parseFloat(params.get('centerY')) || 0.0,
+          scale: parseFloat(params.get('scale')) || 3.0
+        };
+      }
+
+      function updateUrlParams(centerX, centerY, scale) {
+        const params = new URLSearchParams();
+        params.set('centerX', centerX);
+        params.set('centerY', centerY);
+        params.set('scale', scale);
+        window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
+      }
+
+      const { centerX: initialCenterX, centerY: initialCenterY, scale: initialScale } = getUrlParams();
+      let centerX = initialCenterX, centerY = initialCenterY, scale = initialScale;
+
       // Each click will recenter on the clicked point and zoom in by a factor of 4.
       let currentRenderId = 0;  // Increases with each new render (to discard late messages).
       let currentIteration = 0; // Tracks the current refinement iteration.
@@ -131,6 +148,7 @@
         centerX = newCenterX;
         centerY = newCenterY;
         scale = newScale;
+        updateUrlParams(centerX, centerY, scale);
         // Clear the image buffer (here, white background).
         for (let i = 0; i < imageData.data.length; i++) {
           imageData.data[i] = 255;
