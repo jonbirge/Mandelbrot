@@ -28,7 +28,8 @@
       canvas.height = window.innerHeight;
       const width = canvas.width, height = canvas.height;
       const maxIterations = 256;
-      const initialStep = 16;  // Must be a power of 2; iterations will use: 16, 8, 4, 2, 1.
+      const initialStep = 16;  // Must be a power of 2; iterations will use: 16, 8, 4, 2, 1, 0.5
+      const lastStep = 0.5;    // Stop refining when we reach this step size
       
       function getUrlParams() {
         const params = new URLSearchParams(window.location.search);
@@ -76,6 +77,15 @@
         }
       }
 
+      function blendPixel(imageData, x, y, color, weight) {
+        if (x < 0 || x >= width || y < 0 || y >= height) return;
+        const idx = (y * width + x) * 4;
+        imageData.data[idx]     = (imageData.data[idx]     * (1-weight) + color.r * weight);
+        imageData.data[idx + 1] = (imageData.data[idx + 1] * (1-weight) + color.g * weight);
+        imageData.data[idx + 2] = (imageData.data[idx + 2] * (1-weight) + color.b * weight);
+        imageData.data[idx + 3] = 255;
+      }
+
       for (let i = 0; i < numWorkers; i++) {
         const worker = new Worker('mand_worker.js');
         worker.onmessage = function(e) {
@@ -87,15 +97,32 @@
           // For each computed point, fill its s×s block in the image buffer.
           results.forEach(function (p) {
             const color = getColor(p.n, maxIterations);
-            for (let dy = 0; dy < s; dy++) {
-              for (let dx = 0; dx < s; dx++) {
-                const px = p.x + dx, py = p.y + dy;
-                if (px < width && py < height) {
-                  const idx = (py * width + px) * 4;
-                  imageData.data[idx]     = color.r;
-                  imageData.data[idx + 1] = color.g;
-                  imageData.data[idx + 2] = color.b;
-                  imageData.data[idx + 3] = color.a;
+            if (s >= 1) {
+              // Integer block size - direct pixel assignment
+              for (let dy = 0; dy < s; dy++) {
+                for (let dx = 0; dx < s; dx++) {
+                  const px = Math.floor(p.x + dx);
+                  const py = Math.floor(p.y + dy);
+                  blendPixel(imageData, px, py, color, 1.0);
+                }
+              }
+            } else {
+              // Fractional block size - anti-alias in RGB space
+              const x0 = Math.floor(p.x), y0 = Math.floor(p.y);
+              const x1 = Math.ceil(p.x + s), y1 = Math.ceil(p.y + s);
+              
+              for (let py = y0; py < y1; py++) {
+                for (let px = x0; px < x1; px++) {
+                  // Calculate overlap area for this pixel
+                  const left = Math.max(p.x, px);
+                  const right = Math.min(p.x + s, px + 1);
+                  const top = Math.max(p.y, py);
+                  const bottom = Math.min(p.y + s, py + 1);
+                  
+                  if (right > left && bottom > top) {
+                    const weight = (right - left) * (bottom - top);
+                    blendPixel(imageData, px, py, color, weight);
+                  }
                 }
               }
             }
@@ -105,8 +132,8 @@
           // When every worker has returned, schedule the next (more refined) iteration.
           currentIterationPending--;
           if (currentIterationPending === 0) {
-            // Proceed to the next iteration if the block size is greater than 1.
-            if (s > 1) {
+            // Proceed to the next iteration if above lastStep
+            if (s > lastStep) {
               runIteration(s / 2, currentIteration + 1);
             }
           }
@@ -119,7 +146,7 @@
       
       // runIteration dispatches tasks to all workers to compute new points for block size s.
       function runIteration(s, iteration) {
-        if (s < 1) return;
+        if (s < lastStep) return;
         currentIteration = iteration;
         currentIterationPending = numWorkers;
         // Partition the vertical range into segments (one per worker).

@@ -20,9 +20,9 @@ self.onmessage = function(e) {
         if (iteration > 0 && (x % (2 * s) === 0) && (y % (2 * s) === 0)) {
           continue;
         }
-        // Map pixel (x,y) to a complex number.
-        var cx = centerX + (x - width / 2) * (scale / width);
-        var cy = centerY + (y - height / 2) * (scale / width);
+        // Use exact center point of the block
+        var cx = centerX + (x + s/2 - width / 2) * (scale / width);
+        var cy = centerY + (y + s/2 - height / 2) * (scale / width);
         var zx = 0, zy = 0, iter = 0;
         while (zx * zx + zy * zy <= 4 && iter < maxIterations) {
           var xtemp = zx * zx - zy * zy + cx;
