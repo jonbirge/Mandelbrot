@@ -59,6 +59,7 @@
 
       // Create a pool of Web Workers from an inline blob.
       const numWorkers = navigator.hardwareConcurrency || 4;
+      console.log(`Using ${numWorkers} workers`);
       // const numWorkers = 8;
       const workers = [];
       
@@ -149,10 +150,6 @@
         centerY = newCenterY;
         scale = newScale;
         updateUrlParams(centerX, centerY, scale);
-        // Clear the image buffer (here, white background).
-        for (let i = 0; i < imageData.data.length; i++) {
-          imageData.data[i] = 255;
-        }
         ctx.putImageData(imageData, 0, 0);
         // Begin with the coarsest resolution.
         runIteration(initialStep, 0);
@@ -163,7 +160,7 @@
       
       // When the user clicks, recenter on that complex coordinate and zoom in (scale divided by 4).
       canvas.addEventListener("click", function (e) {
-        if (e.button === 0) { // Left click
+        if (e.button === 0 && !hasDragged) { // Left click and no drag
           const rect = canvas.getBoundingClientRect();
           const x = e.clientX - rect.left, y = e.clientY - rect.top;
           // Map the clicked pixel to the complex plane.
@@ -190,6 +187,49 @@
       window.addEventListener('popstate', () => {
         const { centerX: newCenterX, centerY: newCenterY, scale: newScale } = getUrlParams();
         startRender(newCenterX, newCenterY, newScale);
+      });
+
+      let isDragging = false;
+      let dragStartX = 0, dragStartY = 0;
+      let dragStartCenterX = 0, dragStartCenterY = 0;
+      let lastDragUpdate = 0;
+      const dragUpdateInterval = 100; // ms
+      let hasDragged = false;
+
+      canvas.addEventListener("mousedown", function (e) {
+        if (e.button === 0) { // Left button
+          isDragging = true;
+          hasDragged = false;
+          dragStartX = e.clientX;
+          dragStartY = e.clientY;
+          dragStartCenterX = centerX;
+          dragStartCenterY = centerY;
+        }
+      });
+
+      canvas.addEventListener("mousemove", function (e) {
+        if (isDragging) {
+          hasDragged = true;
+          const now = Date.now();
+          if (now - lastDragUpdate >= dragUpdateInterval) {
+            lastDragUpdate = now;
+            const dx = e.clientX - dragStartX;
+            const dy = e.clientY - dragStartY;
+            const newCenterX = dragStartCenterX - dx * (scale / width);
+            const newCenterY = dragStartCenterY - dy * (scale / height);
+            startRender(newCenterX, newCenterY, scale);
+          }
+        }
+      });
+
+      canvas.addEventListener("mouseup", function (e) {
+        if (e.button === 0) { // Left button
+          isDragging = false;
+        }
+      });
+
+      canvas.addEventListener("mouseleave", function () {
+        isDragging = false;
       });
       
     })();
