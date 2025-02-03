@@ -163,12 +163,26 @@
       
       // When the user clicks, recenter on that complex coordinate and zoom in (scale divided by 4).
       canvas.addEventListener("click", function (e) {
+        if (e.button === 0) { // Left click
+          const rect = canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left, y = e.clientY - rect.top;
+          // Map the clicked pixel to the complex plane.
+          const newCenterX = centerX + (x - width / 2) * (scale / width);
+          const newCenterY = centerY + (y - height / 2) * (scale / width);
+          const newScale = scale / 4;
+          startRender(newCenterX, newCenterY, newScale);
+        }
+      });
+
+      // When the user right-clicks, recenter on that complex coordinate and zoom out (scale multiplied by 4).
+      canvas.addEventListener("contextmenu", function (e) {
+        e.preventDefault(); // Prevent the context menu from appearing
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left, y = e.clientY - rect.top;
         // Map the clicked pixel to the complex plane.
         const newCenterX = centerX + (x - width / 2) * (scale / width);
         const newCenterY = centerY + (y - height / 2) * (scale / width);
-        const newScale = scale / 4;
+        const newScale = scale * 4;
         startRender(newCenterX, newCenterY, newScale);
       });
 
