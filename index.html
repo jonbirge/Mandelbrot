@@ -27,8 +27,8 @@
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       const width = canvas.width, height = canvas.height;
-      const initialStep = 16;  // Must be a power of 2; iterations will use: 16, 8, 4, 2, 1, 0.5
-      const lastStep = 0.5;    // Stop refining when we reach this step size
+      const initialStep = 8;  // Must be a power of 2; iterations will use: 16, 8, 4, 2, 1, 0.5
+      const lastStep = 1;    // Stop refining when we reach this step size
       
       // Defaults are also set here, but can be overridden by URL parameters.
       function getUrlParams() {
@@ -66,7 +66,7 @@
       // Create an ImageData buffer that we update progressively.
       let imageData = ctx.getImageData(0, 0, width, height);
 
-      // Create a pool of Web Workers from an inline blob.
+      // Create a pool of Web Workers.
       const numWorkers = Math.min(navigator.hardwareConcurrency || 4, 16);
       console.log(`Using ${numWorkers} workers`);
       // const numWorkers = 8;
@@ -94,6 +94,7 @@
         imageData.data[idx + 3] = 255;
       }
 
+      // Setup workers...
       for (let i = 0; i < numWorkers; i++) {
         const worker = new Worker('mand_worker.js');
         worker.onmessage = function(e) {
@@ -189,7 +190,7 @@
           console.log(`maxIterations: ${maxIterations}`);
         }
         updateUrlParams(centerX, centerY, scale, initialMaxIterations);
-        ctx.putImageData(imageData, 0, 0);
+        // ctx.putImageData(imageData, 0, 0);
         // Begin with the coarsest resolution.
         runIteration(initialStep, 0);
       }
