@@ -15,10 +15,22 @@
       width: 100vw;
       height: 100vh;
     }
+    #data-window {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
   <canvas id="canvas"></canvas>
+  <div id="data-window"></div>
   <script>
     (() => {
       // Set up canvas and viewing parameters.
@@ -29,6 +41,7 @@
       const width = canvas.width, height = canvas.height;
       const initialStep = 8;  // Must be a power of 2; iterations will use: 16, 8, 4, 2, 1, 0.5
       const lastStep = 1;    // Stop refining when we reach this step size
+      const initScale = 3.0;
       
       // Defaults are also set here, but can be overridden by URL parameters.
       function getUrlParams() {
@@ -36,7 +49,7 @@
         return {
           centerX: parseFloat(params.get('centerX')) || -0.5,
           centerY: parseFloat(params.get('centerY')) || 0.0,
-          scale: parseFloat(params.get('scale')) || 3.0,
+          scale: parseFloat(params.get('scale')) || initScale,
           maxIterations: params.get('maxIterations') || 'auto'
         };
       }
@@ -180,6 +193,12 @@
       }
       
       // startRender resets the display and begins the progressive (iterative) computation.
+      const dataWindow = document.getElementById('data-window');
+
+      function updateDataWindow() {
+        dataWindow.innerHTML = `Center: (${centerX.toFixed(5)}, ${centerY.toFixed(5)})<br>Scale: ${Math.round(initScale / scale)}x`;
+      }
+
       function startRender(newCenterX, newCenterY, newScale, logIterations = false) {
         currentRenderId++;
         centerX = newCenterX;
@@ -190,6 +209,7 @@
           console.log(`maxIterations: ${maxIterations}`);
         }
         updateUrlParams(centerX, centerY, scale, initialMaxIterations);
+        updateDataWindow(); // Update data window with new values
         // ctx.putImageData(imageData, 0, 0);
         // Begin with the coarsest resolution.
         runIteration(initialStep, 0);
