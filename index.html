@@ -39,7 +39,7 @@
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       const width = canvas.width, height = canvas.height;
-      const initialStep = 8;  // Must be a power of 2; iterations will use: 16, 8, 4, 2, 1, 0.5
+      const initialStep = 16;  // Must be a power of 2; iterations will use: 16, 8, 4, 2, 1, 0.5
       const lastStep = 1;    // Stop refining when we reach this step size
       const initScale = 3.0;
       
@@ -210,7 +210,6 @@
         }
         updateUrlParams(centerX, centerY, scale, initialMaxIterations);
         updateDataWindow(); // Update data window with new values
-        // ctx.putImageData(imageData, 0, 0);
         // Begin with the coarsest resolution.
         runIteration(initialStep, 0);
       }
@@ -258,40 +257,77 @@
       const dragUpdateInterval = 100; // ms
       let hasDragged = false;
 
-      canvas.addEventListener("mousedown", function (e) {
-        if (e.button === 0) { // Left button
-          isDragging = true;
-          hasDragged = false;
-          dragStartX = e.clientX;
-          dragStartY = e.clientY;
-          dragStartCenterX = centerX;
-          dragStartCenterY = centerY;
-        }
-      });
+      function startDrag(x, y) {
+        isDragging = true;
+        hasDragged = false;
+        dragStartX = x;
+        dragStartY = y;
+        dragStartCenterX = centerX;
+        dragStartCenterY = centerY;
+      }
 
-      canvas.addEventListener("mousemove", function (e) {
+      function updateDrag(x, y) {
         if (isDragging) {
           hasDragged = true;
           const now = Date.now();
           if (now - lastDragUpdate >= dragUpdateInterval) {
             lastDragUpdate = now;
-            const dx = e.clientX - dragStartX;
-            const dy = e.clientY - dragStartY;
+            const dx = x - dragStartX;
+            const dy = y - dragStartY;
             const newCenterX = dragStartCenterX - dx * (scale / width);
             const newCenterY = dragStartCenterY - dy * (scale / height);
             startRender(newCenterX, newCenterY, scale);
           }
         }
+      }
+
+      function endDrag() {
+        isDragging = false;
+      }
+
+      canvas.addEventListener("mousedown", function (e) {
+        if (e.button === 0) { // Left button
+          startDrag(e.clientX, e.clientY);
+        }
+      });
+
+      canvas.addEventListener("mousemove", function (e) {
+        updateDrag(e.clientX, e.clientY);
       });
 
       canvas.addEventListener("mouseup", function (e) {
         if (e.button === 0) { // Left button
-          isDragging = false;
+          endDrag();
         }
       });
 
       canvas.addEventListener("mouseleave", function () {
-        isDragging = false;
+        endDrag();
+      });
+
+      // Touch event listeners for mobile devices
+      canvas.addEventListener("touchstart", function (e) {
+        if (e.touches.length === 1) { // Single touch
+          const touch = e.touches[0];
+          startDrag(touch.clientX, touch.clientY);
+        }
+      });
+
+      canvas.addEventListener("touchmove", function (e) {
+        if (e.touches.length === 1) { // Single touch
+          const touch = e.touches[0];
+          updateDrag(touch.clientX, touch.clientY);
+        }
+      });
+
+      canvas.addEventListener("touchend", function (e) {
+        if (e.touches.length === 0) { // All touches ended
+          endDrag();
+        }
+      });
+
+      canvas.addEventListener("touchcancel", function () {
+        endDrag();
       });
       
     })();
