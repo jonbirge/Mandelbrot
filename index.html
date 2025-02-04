@@ -310,6 +310,12 @@
         if (e.touches.length === 1) { // Single touch
           const touch = e.touches[0];
           startDrag(touch.clientX, touch.clientY);
+        } else if (e.touches.length === 2) { // Pinch zoom
+          e.preventDefault(); // Prevent default pinch zoom behavior
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+          pinchStartDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+          pinchStartScale = scale;
         }
       });
 
@@ -317,6 +323,14 @@
         if (e.touches.length === 1) { // Single touch
           const touch = e.touches[0];
           updateDrag(touch.clientX, touch.clientY);
+        } else if (e.touches.length === 2) { // Pinch zoom
+          e.preventDefault(); // Prevent default pinch zoom behavior
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+          const currentDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+          const scaleFactor = pinchStartDistance / currentDistance;
+          const newScale = pinchStartScale * scaleFactor;
+          startRender(centerX, centerY, newScale);
         }
       });
 
@@ -329,6 +343,10 @@
       canvas.addEventListener("touchcancel", function () {
         endDrag();
       });
+
+      // Variables for pinch zoom
+      let pinchStartDistance = 0;
+      let pinchStartScale = 0;
       
     })();
   </script>
