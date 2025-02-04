@@ -67,7 +67,7 @@
       let imageData = ctx.getImageData(0, 0, width, height);
 
       // Create a pool of Web Workers from an inline blob.
-      const numWorkers = navigator.hardwareConcurrency || 4;
+      const numWorkers = Math.min(navigator.hardwareConcurrency || 4, 16);
       console.log(`Using ${numWorkers} workers`);
       // const numWorkers = 8;
       const workers = [];
