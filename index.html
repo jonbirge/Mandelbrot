@@ -26,11 +26,26 @@
       font-family: Arial, sans-serif;
       font-size: 12px;
     }
+    #reset-button {
+      position: absolute;
+      top: 80px; /* Adjusted to add space between data window and button */
+      left: 10px;
+      background: rgba(50, 205, 50, 0.5);
+      color: rgb(0, 255, 42);
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+      font-size: 12px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <canvas id="canvas"></canvas>
   <div id="data-window"></div>
+  <button id="reset-button">Reset</button>
   <script>
     (() => {
       // Set up canvas and viewing parameters.
@@ -194,9 +209,10 @@
       
       // startRender resets the display and begins the progressive (iterative) computation.
       const dataWindow = document.getElementById('data-window');
+      const resetButton = document.getElementById('reset-button');
 
       function updateDataWindow() {
-        dataWindow.innerHTML = `Center: (${centerX.toFixed(5)}, ${centerY.toFixed(5)})<br>Scale: ${Math.round(initScale / scale)}x`;
+        dataWindow.innerHTML = `Center: (${centerX.toFixed(5)}, ${centerY.toFixed(5)})<br>Scale: ${Math.round(initScale / scale)}x<br>Iterations: ${maxIterations}`;
       }
 
       function startRender(newCenterX, newCenterY, newScale, logIterations = false) {
@@ -213,6 +229,10 @@
         // Begin with the coarsest resolution.
         runIteration(initialStep, 0);
       }
+
+      resetButton.addEventListener('click', () => {
+        startRender(initialCenterX, initialCenterY, initScale, true);
+      });
       
       // Start the initial render.
       startRender(centerX, centerY, scale);
