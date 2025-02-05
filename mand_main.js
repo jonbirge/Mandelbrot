@@ -16,7 +16,7 @@ function getUrlParams() {
     centerX: parseFloat(params.get('centerX')) || defaultX,
     centerY: parseFloat(params.get('centerY')) || defaultY,
     scale: parseFloat(params.get('scale')) || defaultScale,
-    maxIterations: params.get('maxIterations') || 'auto'
+    maxIterations: params.get('maxIterations') || '256'
   };
 }
 
