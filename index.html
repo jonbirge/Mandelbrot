@@ -196,6 +196,9 @@
       
       // runIteration dispatches tasks to all workers to compute new points for block size s.
       function runIteration(s, iteration) {
+        // Stop work on all workers...
+        workers.forEach(worker => worker.postMessage({ terminate: true }));
+        // Return if we're at the last step
         if (s < lastStep) return;
         currentIteration = iteration;
         currentIterationPending = numWorkers;
