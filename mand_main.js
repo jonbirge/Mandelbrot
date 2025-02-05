@@ -6,16 +6,16 @@ canvas.height = window.innerHeight;
 const width = canvas.width, height = canvas.height;
 const initialStep = 16;  // Must be a power of 2; iterations will use: 16, 8, 4, 2, 1, 0.5
 const lastStep = 1;    // Stop refining when we reach this step size
-const initScale = 3.0;
-const initX = -0.5, initY = 0.0;
+const defaultScale = 3.0;
+const defaultX = -0.5, defaultY = 0.0;
 
 // Defaults are also set here, but can be overridden by URL parameters.
 function getUrlParams() {
   const params = new URLSearchParams(window.location.search);
   return {
-    centerX: parseFloat(params.get('centerX')) || initX,
-    centerY: parseFloat(params.get('centerY')) || initY,
-    scale: parseFloat(params.get('scale')) || initScale,
+    centerX: parseFloat(params.get('centerX')) || defaultX,
+    centerY: parseFloat(params.get('centerY')) || defaultY,
+    scale: parseFloat(params.get('scale')) || defaultScale,
     maxIterations: params.get('maxIterations') || 'auto'
   };
 }
@@ -166,7 +166,7 @@ const dataWindow = document.getElementById('data-window');
 const resetButton = document.getElementById('reset-button');
 
 function updateDataWindow() {
-  dataWindow.innerHTML = `Center: (${centerX.toFixed(5)}, ${centerY.toFixed(5)})<br>Scale: ${Math.round(initScale / scale)}x<br>Iterations: ${maxIterations}`;
+  dataWindow.innerHTML = `Center: (${centerX.toFixed(5)}, ${centerY.toFixed(5)})<br>Scale: ${Math.round(defaultScale / scale)}x<br>Iterations: ${maxIterations}`;
 }
 
 function startRender(newCenterX, newCenterY, newScale, logIterations = false) {
@@ -185,7 +185,7 @@ function startRender(newCenterX, newCenterY, newScale, logIterations = false) {
 }
 
 resetButton.addEventListener('click', () => {
-  startRender(initialCenterX, initialCenterY, initScale, true);
+  startRender(defaultX, defaultY, defaultScale, true);
 });
 
 // Start the initial render.
