@@ -1,0 +1,1 @@
+This is a simple web app that uses local JavaScript workers to compute the famous Mandelbrot set quickly. Nothing novel, just an excuse to learn about JavaScript parallel programming. For an intepreted language implementation, this is surprisingly fast.
