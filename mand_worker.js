@@ -24,8 +24,8 @@ self.onmessage = function(e) {
         var cx = centerX + (x + s/2 - width / 2) * (scale / width);
         var cy = centerY + (y + s/2 - height / 2) * (scale / width);
         var zx = 0, zy = 0, iter = 0;
-        var xtemp = zx * zx - zy * zy + cx;
         while (zx * zx + zy * zy <= 4 && iter < maxIterations) {
+          var xtemp = zx * zx - zy * zy + cx;
           zy = 2 * zx * zy + cy;
           zx = xtemp;
           iter++;
