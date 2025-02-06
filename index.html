@@ -30,14 +30,18 @@
       font-size: 12px;
     }
 
+    :root {
+      --button-color: rgb(189, 27, 27);
+    }
+
     #reset-button {
       position: absolute;
       top: 90px; /* Adjusted to add more space between data window and button */
       left: 10px;
-      background: rgba(4, 94, 4, 0.5);
-      color: rgb(145, 255, 163);
+      background: rgba(41, 0, 0, 0.801);
+      color: var(--button-color);
       padding: 5px 10px;
-      border: none;
+      border: 2px solid var(--button-color); /* Use the variable for the border color */
       border-radius: 5px;
       font-family: Arial, sans-serif;
       font-weight: bold;

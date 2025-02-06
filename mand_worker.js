@@ -23,12 +23,11 @@ self.onmessage = function(e) {
         // Use exact center point of the block
         var cx = centerX + (x + s/2 - width / 2) * (scale / width);
         var cy = centerY + (y + s/2 - height / 2) * (scale / width);
-        var zx = 0, zy = 0, iter = 0;
-        while (zx * zx + zy * zy <= 4 && iter < maxIterations) {
+        var zx = 0, zy = 0, iter = 1;
+        while (zx * zx + zy * zy <= 4 && iter++ < maxIterations) {
           var xtemp = zx * zx - zy * zy + cx;
           zy = 2 * zx * zy + cy;
           zx = xtemp;
-          iter++;
         }
         // Each computed point represents a block of size s x s.
         results.push({ x: x, y: y, s: s, n: iter });

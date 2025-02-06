@@ -98,7 +98,6 @@ for (let i = 0; i < numWorkers; i++) {
         // Fractional block size - anti-alias in RGB space
         const x0 = Math.floor(p.x), y0 = Math.floor(p.y);
         const x1 = Math.ceil(p.x + s), y1 = Math.ceil(p.y + s);
-        
         for (let py = y0; py < y1; py++) {
           for (let px = x0; px < x1; px++) {
             // Calculate overlap area for this pixel
@@ -168,7 +167,9 @@ const dataWindow = document.getElementById('data-window');
 const resetButton = document.getElementById('reset-button');
 
 function updateDataWindow() {
-  dataWindow.innerHTML = `Center: (${centerX.toFixed(5)}, ${centerY.toFixed(5)})<br>Scale: ${Math.round(defaultScale / scale)}x<br>Iterations: ${maxIterations}`;
+  dataWindow.innerHTML = `Center: (${centerX.toFixed(5)}, ${centerY.toFixed(5)})<br>`;
+  dataWindow.innerHTML += `Scale: ${Math.round(defaultScale / scale)}x`;
+  dataWindow.innerHTML += `<br>Max iterations: ${maxIterations}`;
   dataWindow.innerHTML += `<br>Workers: ${currentIterationPending}/${numWorkers}`;
 }
 
@@ -183,8 +184,7 @@ function startRender(newCenterX, newCenterY, newScale, logIterations = false) {
   }
   updateUrlParams(centerX, centerY, scale, initialMaxIterations);
   updateDataWindow(); // Update data window with new values
-  // Begin with the coarsest resolution.
-  runIteration(initialStep, 0);
+  runIteration(initialStep, 0); // Begin with the coarsest resolution.
 }
 
 resetButton.addEventListener('click', () => {
