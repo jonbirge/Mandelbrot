@@ -119,6 +119,7 @@ for (let i = 0; i < numWorkers; i++) {
     ctx.putImageData(imageData, 0, 0);
     // When every worker has returned, schedule the next (more refined) iteration.
     currentIterationPending--;
+    updateDataWindow();
     if (currentIterationPending === 0) {
       // Proceed to the next iteration if above lastStep
       if (s > lastStep) {
@@ -140,6 +141,7 @@ function runIteration(s, iteration) {
   if (s < lastStep) return;
   currentIteration = iteration;
   currentIterationPending = numWorkers;
+  updateDataWindow();
   // Partition the vertical range into segments (one per worker).
   const segmentHeight = Math.ceil(height / numWorkers);
   for (let i = 0; i < numWorkers; i++) {
@@ -167,6 +169,7 @@ const resetButton = document.getElementById('reset-button');
 
 function updateDataWindow() {
   dataWindow.innerHTML = `Center: (${centerX.toFixed(5)}, ${centerY.toFixed(5)})<br>Scale: ${Math.round(defaultScale / scale)}x<br>Iterations: ${maxIterations}`;
+  dataWindow.innerHTML += `<br>Workers: ${currentIterationPending}/${numWorkers}`;
 }
 
 function startRender(newCenterX, newCenterY, newScale, logIterations = false) {
