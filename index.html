@@ -18,6 +18,10 @@
       height: 100vh;
     }
 
+    :root {
+      --button-color: rgb(189, 27, 27);
+    }
+
     #data-window {
       position: absolute;
       top: 10px;
@@ -26,12 +30,8 @@
       color: white;
       padding: 10px;
       border-radius: 5px;
-      font-family: Arial, sans-serif;
+      font-family: sans-serif;
       font-size: 12px;
-    }
-
-    :root {
-      --button-color: rgb(189, 27, 27);
     }
 
     #reset-button {
@@ -41,9 +41,9 @@
       background: rgba(41, 0, 0, 0.801);
       color: var(--button-color);
       padding: 5px 10px;
-      border: 2px solid var(--button-color); /* Use the variable for the border color */
+      border: 0px solid var(--button-color); /* Use the variable for the border color */
       border-radius: 5px;
-      font-family: Arial, sans-serif;
+      font-family: sans-serif;
       font-weight: bold;
       font-size: 12px;
       cursor: pointer;
