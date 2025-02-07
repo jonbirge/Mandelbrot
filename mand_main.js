@@ -219,6 +219,17 @@ canvas.addEventListener("contextmenu", function (e) {
   startRender(newCenterX, newCenterY, newScale, true);
 });
 
+// Modify wheel zoom support
+canvas.addEventListener("wheel", function (e) {
+  e.preventDefault(); // Prevent page scrolling
+
+  // Zoom in or out based on scroll direction
+  const zoomFactor = 1.2;
+  const newScale = e.deltaY > 0 ? scale * zoomFactor : scale / zoomFactor;
+
+  startRender(centerX, centerY, newScale, true);
+});
+
 // Handle the popstate event to re-render the view when navigating history.
 window.addEventListener('popstate', () => {
   const { centerX: newCenterX, centerY: newCenterY, scale: newScale, maxIterations: newMaxIterations } = getUrlParams();
