@@ -4,10 +4,11 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const width = canvas.width, height = canvas.height;
-const initialStep = 16;  // Must be a power of 2; iterations will use: 16, 8, 4, 2, 1, 0.5
-const lastStep = 1;    // Stop refining when we reach this step size
+const initialStep = 16;  // Must be a power of 2
+const lastStep = 1;      // Stop refining when we reach this step size
 const defaultScale = 3.0;
 const defaultX = -0.5, defaultY = 0.0;
+const defaultIter = 1024;
 
 // Defaults are also set here, but can be overridden by URL parameters.
 function getUrlParams() {
@@ -16,7 +17,7 @@ function getUrlParams() {
     centerX: parseFloat(params.get('centerX')) || defaultX,
     centerY: parseFloat(params.get('centerY')) || defaultY,
     scale: parseFloat(params.get('scale')) || defaultScale,
-    maxIterations: params.get('maxIterations') || '256'
+    maxIterations: parseInt(params.get('maxIterations')) || defaultIter
   };
 }
 
